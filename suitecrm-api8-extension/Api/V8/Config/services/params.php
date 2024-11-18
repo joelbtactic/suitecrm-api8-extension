@@ -85,4 +85,10 @@ return CustomLoader::mergeCustomArray([
             $container->get(BeanManager::class)
         );
     },
+    Param\GetFieldListParamsByLang::class => function (Container $container) {
+        return new Param\GetFieldListParamsByLang(
+            $container->get(ValidatorFactory::class),
+            $container->get(BeanManager::class)
+        );
+    },
 ], basename(__FILE__));

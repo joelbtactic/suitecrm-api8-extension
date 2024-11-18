@@ -93,6 +93,24 @@ class MetaController extends BaseController
      * @param Request $request
      * @param Response $response
      * @param array $args
+     * @return Response
+     */
+    public function getModuleListByLang(Request $request, Response $response, array $args)
+    {
+        try {
+            $jsonResponse = $this->metaService->getModuleListByLang($request, $args['lang']);
+
+            return $this->generateResponse($response, $jsonResponse, 200);
+        } catch (Exception $exception) {
+            return $this->generateErrorResponse($response, $exception, 400);
+        }
+    }
+
+    /**
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
      * @param GetFieldListParams $fieldListParams
      * @return Response
      */

@@ -37,8 +37,13 @@ $app->group('', function () use ($app) {
 
         $app->get('/meta/modules', 'Api\V8\Controller\MetaController:getModuleList');
 
+        $app->get('/meta/modules/{lang}', 'Api\V8\Controller\MetaController:getModuleListByLang');
+
         $app->get('/meta/fields/{moduleName}', 'Api\V8\Controller\MetaController:getFieldList')
             ->add($paramsMiddlewareFactory->bind(Param\GetFieldListParams::class));
+
+        $app->get('/meta/fields/{moduleName}/{lang}', 'Api\V8\Controller\MetaController:getFieldList')
+            ->add($paramsMiddlewareFactory->bind(Param\GetFieldListParamsByLang::class));
 
         $app
             ->get('/user-preferences/{id}', 'Api\V8\Controller\UserPreferencesController:getUserPreferences')

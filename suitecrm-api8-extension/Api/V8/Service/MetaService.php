@@ -69,6 +69,7 @@ class MetaService
     private $moduleListProvider;
 
     private static $allowedVardefFields = [
+        'name',
         'type',
         'dbType',
         'source',
@@ -78,6 +79,8 @@ class MetaService
         'precision',
         'comments',
         'required',
+        'id_name',
+        'link'
     ];
 
     /**
@@ -113,6 +116,26 @@ class MetaService
     }
 
     /**
+     * Build the response with a list of modules labels.
+     *
+     * @param Request $request
+     * @return DocumentResponse
+     */
+    public function getModuleListByLang(Request $request, string $language)
+    {
+        $modules = $this->moduleListProvider->getModuleListByLang($language);
+
+        $dataResponse = new DataResponse('modules', '');
+        $attributeResponse = new AttributeResponse($modules);
+        $dataResponse->setAttributes($attributeResponse);
+
+        $response = new DocumentResponse();
+        $response->setData($dataResponse);
+
+        return $response;
+    }
+
+    /**
      * Build the response with a list of fields to return.
      *
      * @param Request $request
@@ -122,8 +145,7 @@ class MetaService
      */
     public function getFieldList(Request $request, GetFieldListParams $fieldListParams)
     {
-        $fieldList = $this->buildFieldList($fieldListParams->getModule());
-
+        $fieldList = $this->buildFieldList($fieldListParams->getModule(), $fieldListParams->getLang());
         $dataResponse = new DataResponse('fields', '');
         $attributeResponse = new AttributeResponse($fieldList);
         $dataResponse->setAttributes($attributeResponse);
@@ -157,13 +179,13 @@ class MetaService
      * @return array
      * @throws NotAllowedException
      */
-    private function buildFieldList($module)
+    private function buildFieldList($module, $language)
     {
         $this->checkIfUserHasModuleAccess($module);
         $bean = $this->beanManager->newBeanSafe($module);
         $fieldList = [];
         foreach ($bean->field_defs as $fieldName => $fieldDef) {
-            $fieldList[$fieldName] = $this->pruneVardef($fieldDef);
+            $fieldList[$fieldName] = $this->pruneVardef($fieldDef, $module, $language);
         }
 
         return $fieldList;
@@ -175,8 +197,10 @@ class MetaService
      * @param array $def
      * @return array
      */
-    private function pruneVardef($def)
+    private function pruneVardef($def, $module, $language)
     {
+        $app_list_strings = return_app_list_strings_language_by_lang($language);
+
         $pruned = [];
         foreach ($def as $var => $val) {
             if (in_array($var, static::$allowedVardefFields, true)) {
@@ -188,6 +212,36 @@ class MetaService
         }
         if (!isset($def['dbType'])) {
             $pruned['dbType'] = $def['type'];
+        }
+        
+        $modLabel = translate_by_lang($def['vname'], $module, '', $language);
+
+        if (isset($modLabel)){
+            $pruned['label'] = $modLabel;
+        } else {
+            $pruned['label'] = $pruned['name'];
+        }
+
+        if (isset($def['default'])){
+            $pruned['default_value'] = $def['default'];
+        } else {
+            $pruned['default_value'] = '';
+        }
+
+        if (isset($def['module'])){
+            $pruned['related_module'] = $def['module'];
+        } else {
+            $pruned['related_module'] = '';
+        }
+
+        if (isset($def['options'])) {
+            $options = $def['options'];
+            $app_list_strings = $app_list_strings[$options];
+            $pruned_options = array();
+            foreach ($app_list_strings as $key => $value) {
+                $pruned_options[$key] = array('name' => $key, 'value' => $value);
+            }
+            $pruned['options'] = $pruned_options;
         }
 
         return $pruned;

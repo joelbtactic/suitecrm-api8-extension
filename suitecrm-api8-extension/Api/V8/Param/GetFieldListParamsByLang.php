@@ -48,28 +48,18 @@ use Api\V8\Param\Options as ParamOption;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class GetFieldListParams
+ * Class GetFieldListParamsByLang
  * @package Api\V8\Param
  */
 #[\AllowDynamicProperties]
-class GetFieldListParams extends BaseParam
+class GetFieldListParamsByLang extends GetFieldListParams
 {
-    
-    /**
-     * @return string
-     */
-    public function getModule()
-    {
-        return $this->parameters['moduleName'];
-    }
-
     /**
      * @return string
      */
     public function getLang()
     {
-        global $current_language;
-        return $current_language;
+        return $this->parameters['lang'];
     }
 
     /**
@@ -80,6 +70,7 @@ class GetFieldListParams extends BaseParam
     {
         $this->setOptions($resolver, [
             ParamOption\ModuleName::class,
+            ParamOption\LangOption::class
         ]);
     }
 }

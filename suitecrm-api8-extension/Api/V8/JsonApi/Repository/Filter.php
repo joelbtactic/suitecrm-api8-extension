@@ -12,6 +12,7 @@ class Filter
     public const OP_LT = '<';
     public const OP_LTE = '<=';
     public const OP_LIKE = 'LIKE';
+    public const OP_NOTLIKE = 'NOT LIKE';
 
     public const OP_AND = 'AND';
     public const OP_OR = 'OR';
@@ -73,13 +74,27 @@ class Filter
 
             foreach ($expr as $op => $value) {
                 $this->checkOperator($op);
-                $where[] = sprintf(
-                    '%s.%s %s %s',
-                    $tableName,
-                    $field,
-                    constant(sprintf('%s::OP_%s', self::class, strtoupper($op))),
-                    $this->db->quoted($value)
-                );
+
+                if (is_array($value)){
+                    foreach($value as $elem){
+                        $where[] = sprintf(
+                            '%s.%s %s %s',
+                            $tableName,
+                            $field,
+                            constant(sprintf('%s::OP_%s', self::class, strtoupper($op))),
+                            $this->db->quoted($elem)
+                        );
+                    }
+                }
+                else {
+                    $where[] = sprintf(
+                        '%s.%s %s %s',
+                        $tableName,
+                        $field,
+                        constant(sprintf('%s::OP_%s', self::class, strtoupper($op))),
+                        $this->db->quoted($value)
+                    );
+                }
             }
         }
 

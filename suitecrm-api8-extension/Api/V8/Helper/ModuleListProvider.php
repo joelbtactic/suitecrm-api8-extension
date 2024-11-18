@@ -64,12 +64,28 @@ class ModuleListProvider
     }
 
     /**
+     * @return array
+     */
+    public function getModuleListByLang($language)
+    {
+        global $current_user;
+
+        $modules = query_module_access_list($current_user);
+        \ACLController::filterModuleList($modules, false);
+        $modules = $this->removeInvisibleModules($modules);
+        $modules = $this->markACLAccess($modules);
+        $modules = $this->addModuleLabels($modules, $language);
+
+        return $modules;
+    }
+
+    /**
      * @param $modules
      * @return mixed
      */
-    private function addModuleLabels($modules)
+    private function addModuleLabels($modules, $language='')
     {
-        global $app_list_strings;
+        $app_list_strings = return_app_list_strings_language_by_lang($language);
 
         foreach ($modules as $moduleName => &$moduleData) {
             $moduleData['label'] = $app_list_strings['moduleList'][$moduleName];
